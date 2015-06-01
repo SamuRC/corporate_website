@@ -1,0 +1,29 @@
+{% extends "base_admin.html" %}
+{% block title %} Formulario de productos {% endblock title %}
+{% block content %}
+<div class="contact-body">
+    <h3 class="h3-body-title">
+        Productos
+    </h3>
+    <p class="body_paragraph contact-paragraph">
+        Ingrese todos los campos obligatorios (*)
+    </p>
+
+    <form class="form-wrapper" id="contact-form" method="post" role="form" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="row">
+            <div class="col-md-2 col-sm-2 col-lg-offset-3">
+                {% if object %}
+                    <input type="submit" value="Guardar" class="btn btn-lg" />
+                {% else %}
+                    <input type="submit" value="Crear" class="btn btn-lg" />
+                {% endif %}
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <a href="{% url 'products' %}" class="btn btn-default">Salir</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock content %}

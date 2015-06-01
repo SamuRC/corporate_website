@@ -1,0 +1,201 @@
+{% extends "base_admin.html" %}
+{% block title %} Clasificaciones {% endblock title %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery.nestable.css">
+{% endblock styles %}
+{% block content %}
+<div class="contact-body">
+    <h3 class="h3-body-title">
+        Lista de Clasificaciones
+    </h3>
+
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="row">
+                <button id="save_classifications" class="btn btn-default">Guardar cambios</button>
+            </div>
+
+            <div class="dd" id="nestable">
+                <ol class="dd-list outer">
+                    {% for node in object_list %}
+                        {%include "tree_view_template.html" %}
+                    {% endfor %}
+                </ol>
+            </div>
+
+            <div class="m-t-md"><br/>
+                <textarea class="form-control" id="nestable-output"></textarea>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <h3>Nueva clasificación: </h3>
+            <form id="form_classification" class="form-wrapper form-horizontal" method="post" role="form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div id="preview-list"></div>
+                <div class="form-group">
+                    <input type="text" class="form-control" name="name" id="name" placeholder="Ingrese un nombre">
+                </div>
+                <div class="form-group">
+                    <textarea id="description" name="description" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                    <span class="js-fileapi-wrapper" style="position: relative;">
+                        <input id="user-files" type="file" accept=".jpg,.jpeg,.gif"/>
+                    </span>
+                </div>
+                <div class="form-group">
+                    <button id="add_classification" class="btn btn-default">Agregar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.nestable.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/app/general.js"></script>
+    <script>var FileAPI = { debug: false, pingUrl: false }</script>
+	<script src="{{ STATIC_URL }}js/FileAPI/FileAPI.min.js"></script>
+	<script src="{{ STATIC_URL }}js/FileAPI/FileAPI.id3.js"></script>
+	<script src="{{ STATIC_URL }}js/FileAPI/FileAPI.exif.js"></script>
+
+    <script>
+        $(document).ready(function(){
+            var json_classification = null;
+            var name = $("#name"),
+                description = $("#description"),
+                user_files = $("#user-files");
+            var input = document.getElementById('user-files');
+            var previewNode = document.getElementById('preview-list');
+            var imageList = null;
+            var requestSent = false;
+            var updateOutput = function (e) {
+                var list = e.length ? e : $(e.target),
+                     output = list.data('output');
+                if (window.JSON) {
+                    output.val(window.JSON.stringify(list.nestable('serialize')));//, null, 2));
+                    json_classification = window.JSON.stringify(list.nestable('serialize'));
+                } else {
+                    output.val('JSON browser support required for this demo.');
+                }
+            };
+            //initial
+            name.val('');
+            description.val('');
+            user_files.val('');
+            // activate Nestable for list 1
+            $('#nestable').nestable({group: 1}).on('change', updateOutput);
+            // output initial serialised data
+            updateOutput($('#nestable').data('output', $('#nestable-output')));
+            $('#add_classification').click(function (e) {
+                e.preventDefault();
+                if(name.val() != ""){
+                    if(!requestSent) {
+                        requestSent = true;
+                        FileAPI.upload({
+                            url: "/agregar-clasificacion/",
+                            data: {
+                                'name': $('#name').val(),
+                                'description': $('#description').val()
+                            },
+                            headers: { "X-CSRFToken": $('input[name="csrfmiddlewaretoken"]').prop('value') },
+                            files: {
+                                image: imageList
+                            },
+                            imageTransform: {
+                                maxWidth:  1024,
+                                maxHeight: 768
+                            },
+                            imageAutoOrientation: true,
+                            progress: function (evt){    // (flash, html5)
+                                var percent = evt.loaded/evt.total*100;
+                                console.log('progres', percent);
+                            },
+                            complete: function (err, xhr){
+                                requestSent = false;
+                                if(!err){
+                                    var obj = window.JSON.parse(xhr.responseText);
+                                    var li = $('<li/>', {
+                                        'class': 'dd-item dd3-item',
+                                        'data-id': obj.id
+                                    });
+                                    $('<div/>', {
+                                        'class': 'dd-handle dd3-handle',
+                                        'text': 'Drag'
+                                    }).appendTo(li);
+                                    $('<div/>', {
+                                        'class': 'dd3-content',
+                                        'name': obj.id,
+                                        'text': name.val()
+                                    }).appendTo(li);
+                                    $('ol.outer').append(li);
+                                    //Limpiar
+                                    description.val('');
+                                    name.val('');
+                                    user_files.val('');
+                                    previewNode.innerHTML = "";
+                                    updateOutput($('#nestable').data('output', $('#nestable-output')));
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+            $('#save_classifications').click(function (e) {
+                e.preventDefault();
+                if(json_classification != null){
+                    if(!requestSent) {
+                        requestSent = true;
+                        $.ajax({
+                            url: "/sincronizar-clasificacion/",
+                            method: "POST",
+                            data: { data : json_classification },
+                            dataType: "json"
+                        }).done(function( data ) {
+                            console.log(data);
+                        }).complete(function(){
+                            requestSent = false;
+                        });
+                    }
+                }
+            });
+
+            FileAPI.event.on(input, 'change', function (evt){
+                var files = FileAPI.getFiles(evt.target); // or FileAPI.getFiles(evt)
+                // filtering
+                FileAPI.filterFiles(files, function (file, info){
+                    if( /image/.test(file.type) && info ){
+                        return  info.width >= 320 && info.height >= 240;
+                    }
+                    else {
+                        return  file.size > 128;
+                    }
+                }, function (fileList, ignor){
+                    if( ignor.length ){
+                        user_files.val('');
+                        alert('El archivo es muy pequeño debe ser mayor a 320px x 240px');
+                        return false;
+                    }
+
+                    if( !fileList.length ){
+                        return false;
+                    }
+
+                    // do preview
+                    imageList = FileAPI.filter(fileList, function (file){ return /image/.test(file.type); })[0];
+                    FileAPI.Image(imageList)
+                        .preview(100, 120)
+                        .get(function (err, image){
+                            if( err ){
+                                alert('Error al cargar la imagen...');// ...
+                            }
+                            else {
+                                previewNode.innerHTML = "";
+                                previewNode.appendChild(image);
+                            }
+                        });
+                });
+            });
+        });
+    </script>
+{% endblock %}

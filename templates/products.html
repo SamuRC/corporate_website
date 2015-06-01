@@ -1,0 +1,50 @@
+{% extends "base_admin.html" %}
+{% block title %} Productos {% endblock title %}
+{% block content %}
+<div class="contact-body">
+    <h3 class="h3-body-title">
+        Lista de productos
+    </h3>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Fecha de registro</th>
+                <th>Título</th>
+                <th>Descripción</th>
+                <th>Opciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in object_list %}
+            <tr>
+                <td>{{ product.creation_time }}</td>
+                <td>{{ product.name }}</td>
+                <td>{{ product.description }}</td>
+                <td>
+                    <div class="content-box content-style2 small">
+                        <a href="{% url 'update_product' product.id %}" class="btn btn-sm btn-blue">Editar</a>
+                        <a href="{% url 'delete_product' product.id %}" class="btn btn-sm btn-red">Eliminar</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if is_paginated %}
+        <div class="pagination">
+            <span class="page-links">
+                {% if page_obj.has_previous %}
+                    <a href="/productos?page={{ page_obj.previous_page_number }}"><strong>Anterior</strong></a>
+                {% endif %}
+                <span class="page-current">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+                </span>
+                {% if page_obj.has_next %}
+                    <a href="/productos?page={{ page_obj.next_page_number }}"><strong>Siguiente</strong></a>
+                {% endif %}
+            </span>
+        </div>
+    {% endif %}
+</div>
+{% endblock content %}

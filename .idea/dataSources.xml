@@ -3,8 +3,10 @@
   <component name="DataSourceManagerImpl" format="xml" hash="4066409636">
     <data-source source="LOCAL" name="Django default" uuid="2b9ff956-1873-42f8-8f73-cdcaa6ab31d7">
       <driver-ref>sqlite.xerial</driver-ref>
-      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:C:\Developer\caferma\db.sqlite3</jdbc-url>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://127.0.0.1:5432/cafermadb</jdbc-url>
+      <user-name>postgres</user-name>
+      <user-password>dfc9dfd8dfcbdfd9dfc2df9bdf98df9e</user-password>
       <libraries />
     </data-source>
   </component>

@@ -1,0 +1,13 @@
+{% extends "base_admin.html" %}
+{% block title %} Producto {% endblock title %}
+{% block content %}
+
+<form method="post">{% csrf_token %}
+    <h2 class="text-center">¿Desea eliminar el producto "{{ object }}" ?</h2>
+    <div class="text-center">
+        <input type="submit" value="Eliminar" class="btn btn-sm btn-red"/>
+        <a href="{% url 'products' %}" class="btn btn-default">NO</a>
+    </div>
+</form>
+
+{% endblock content %}

@@ -1,0 +1,110 @@
+{% extends "base_admin.html" %}
+{% block title %} Formulario de noticias {% endblock title %}
+{% block styles %}
+    <style>
+        #tags_section .tag{
+            display: block;
+            float: left;
+            padding: 0 10px 0 10px;
+            border-radius: 10px;
+            line-height: 23px;
+            position: relative;
+            font-size: 11px;
+            margin: 0px 10px 10px 0px;
+            background-color: #f2f2f2;
+        }
+        #tags_section .tag a:hover {
+            color: #279fbb;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        #tags_section .tag input[type="checkbox"]{
+            display: none;
+        }
+    </style>
+{% endblock styles %}
+{% block content %}
+<div class="contact-body">
+    <h3 class="h3-body-title">
+        Noticias
+    </h3>
+    <p class="body_paragraph contact-paragraph">
+        Ingrese todos los campos obligatorios (*)
+    </p>
+
+    <form class="form-wrapper form-horizontal" id="contact-form" method="post" role="form" novalidate enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p|safe }}
+        <label>Tags relacionados:</label>
+        <div class="form-group">
+            <div class="col-sm-8">
+                <div class="input-group col-xs-11">
+                    <input type="text" class="input-sm" id="new_tag" name="new_tag"/>
+                    <div class="input-group-btn">
+                        <button class="btn btn-default btn-sm" id="add_tag">Agregar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" id="tags_section">
+            {% if object %}
+                {% for tag in object.tags.all %}
+                    <div class="tag">
+                        <input checked type="checkbox" name="tags" value="{{ tag.name }}">{{ tag.name }}
+                        <a href="javascript:void(0)">
+                            <i class="icon-forbidden"></i>
+                        </a>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="row">
+            <div class="col-md-2 col-sm-2 col-lg-offset-3">
+                {% if object %}
+                    <input type="submit" value="Guardar" class="btn btn-lg" />
+                {% else %}
+                    <input type="submit" value="Crear" class="btn btn-lg" />
+                {% endif %}
+            </div>
+            <div class="col-md-2 col-sm-2">
+                <a href="{% url 'news' %}" class="btn btn-default">Salir</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock content %}
+{% block scripts %}
+    <script>
+        $(document).ready(function(){
+            var new_tag = $("#new_tag");
+            var tags_content = $("#tags_section");
+            $("#add_tag").click(function(e){
+                e.preventDefault();
+                if(new_tag.val() != ""){
+                    var div = $('<div/>', {
+                        'class':'tag',
+                        'text': new_tag.val()+' '
+                    });
+                    var input = $('<input/>', {
+                        'checked':'checked',
+                        'type':'checkbox',
+                        'name':'tags',
+                        'value':new_tag.val()
+                    }).appendTo(div);
+                    var a = $('<a/>', {'href':'javascript:void(0)'});
+                    var i = $('<i/>', {'class': 'icon-forbidden'}).appendTo(a);
+                    a.appendTo(div);
+                    div.appendTo(tags_content);
+                    new_tag.val("");
+                    new_tag.focus();
+                }
+            });
+            $('#tags_section').on('click', 'a', function(e){
+                var _this = $(this);
+                _this.parent('.tag').remove();
+            });
+        });
+    </script>
+{% endblock scripts %}

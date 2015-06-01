@@ -1,0 +1,50 @@
+{% extends "base_admin.html" %}
+{% block title %} Iniciar sesión {% endblock title %}
+{% block content_login %}
+
+<div class="content-wrapper hide-until-loading"><div class="body-wrapper">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 col-sm-12 animated" data-animtype="flipInY"
+                     data-animrepeat="0"
+                     data-speed="1s"
+                     data-delay="0.5s">
+                    <h2 class="h2-section-title">Sign In</h2>
+
+                    <div class="i-section-title">
+                        <i class="icon-users-outline">
+
+                        </i>
+                    </div>
+
+                    <div class="space-sep20"></div>
+                </div>
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-6 col-sm-6 centered">
+                    {% if form.errors %}
+                        <p>Su usuario y contraseña no coinciden. Por favor intente de nuevo.</p>
+                    {% endif %}
+                    <div class="classic-form">
+                        <form method="post" class="form-horizontal" role="form" action="{% url 'auth_login' %}" novalidate>
+                            {% csrf_token %}
+                            <table>
+                            {{ form }}
+                            </table>
+                            <div class="form-group">
+                                <div class="col-md-4 col-sm-4 col-lg-offset-4" style="margin-top: 10px;">
+                                    <input type="submit" class="btn btn-block btn-primary" value="Ingresar">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div><!--.content-wrapper end -->
+
+{% endblock content_login %}

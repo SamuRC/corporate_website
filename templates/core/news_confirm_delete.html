@@ -1,0 +1,13 @@
+{% extends "base_admin.html" %}
+{% block title %} Noticias {% endblock title %}
+{% block content %}
+
+<form method="post">{% csrf_token %}
+    <h2 class="text-center">¿Desea eliminar la noticia "{{ object }}" ?</h2>
+    <div class="text-center">
+        <input type="submit" value="Eliminar" class="btn btn-sm btn-red"/>
+        <a href="{% url 'news' %}" class="btn btn-default">NO</a>
+    </div>
+</form>
+
+{% endblock content %}

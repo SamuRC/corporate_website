@@ -1,0 +1,13 @@
+<li class="dd-item dd3-item" data-id="{{ node.id }}">
+    <div class="dd-handle dd3-handle">Drag</div>
+    <div class="dd3-content" name="{{ node.id }}">{{ node.name }}</div>
+    {%if node.children.all|length > 0 %}
+        <ol class="dd-list">
+         {%for ch in node.children.all %}
+              {%with node=ch template_name="tree_view_template.html" %}
+                   {%include template_name %}
+              {%endwith%}
+         {%endfor%}
+         </ol>
+    {%endif%}
+</li>

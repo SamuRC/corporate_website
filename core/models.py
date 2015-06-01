@@ -1,34 +1,8 @@
+# -*- encoding: utf-8 -*-
+
 from django.db import models
-import time
-import uuid
-
-
-class User(models.Model):
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    dni = models.CharField(max_length=8, null=True)
-    email = models.EmailField(max_length=50, null=True)
-    password = models.CharField(max_length=128)
-    is_active = models.BooleanField(default=True)
-    token = models.CharField(max_length=36, null=True)
-    last_login_time = models.BigIntegerField(null=True)
-    creation_time = models.BigIntegerField(editable=False)
-    last_update_time = models.BigIntegerField(null=True)
-
-    def save(self, *args, **kwargs):
-        """On save, update timestamps"""
-        if self.id:
-            self.last_update_time = int(time.time())
-        elif not self.id:
-            self.creation_time = int(time.time())
-            self.token = str(uuid.uuid4())
-        return super(User, self).save(*args, **kwargs)
-
-    class Meta:
-        db_table = "users"
-
-    def __unicode__(self):
-        return self.person.first_name + ' ' + self.person.last_name
+from django.contrib.auth.models import User
+from datetime import datetime
 
 
 class Tag(models.Model):
@@ -37,6 +11,9 @@ class Tag(models.Model):
     class Meta:
         db_table = "tags"
 
+    def __unicode__(self):
+        return self.name
+
 
 class Category(models.Model):
     name = models.CharField(max_length=50)
@@ -44,97 +21,113 @@ class Category(models.Model):
     class Meta:
         db_table = "categories"
 
+    def __unicode__(self):
+        return self.name
+
 
 class News(models.Model):
-    tags = models.ManyToManyField(Tag, db_table="news_tags", related_name='news', blank=True)
-    categories = models.ManyToManyField(Category, db_table="news_categories", related_name='news', blank=True)
-    author = models.ForeignKey(User, null=False)
+    tags = models.ManyToManyField(Tag, db_table="news_tags", related_name='news', blank=True, null=True)
+    categories = models.ManyToManyField(Category, db_table="news_categories", related_name='news', blank=True, null=True)
+    user = models.ForeignKey(User)
     title = models.TextField(null=False)
     body = models.TextField(null=False)
     is_published = models.BooleanField(default=True)
     image = models.ImageField(upload_to='news', null=True)
     video = models.TextField(null=True)
-    creation_time = models.BigIntegerField(editable=False)
-    last_update_time = models.BigIntegerField(null=True)
+    creation_time = models.DateTimeField(editable=False)
+    last_update_time = models.DateTimeField(null=True)
 
     def save(self, *args, **kwargs):
         """On save, update timestamps"""
         if self.id:
-            self.last_update_time = int(time.time())
+            self.last_update_time = str(datetime.now())
         elif not self.id:
-            self.creation_time = int(time.time())
+            self.creation_time = str(datetime.now())
 
-        return super(Notice, self).save(*args, **kwargs)
+        return super(News, self).save(*args, **kwargs)
 
     class Meta:
         db_table = "news"
 
+    def __unicode__(self):
+        return self.title
+
 
 #Eventos
 class Event(models.Model):
-    tags = models.ManyToManyField(Tag, db_table="events_tags", related_name='events', blank=True)
-    author = models.ForeignKey(User, null=False)
-    name = models.CharField(max_length=100)
+    user = models.OneToOneField(User)
+    name = models.CharField(max_length=150)
     information = models.TextField()
     address = models.TextField()
     is_published = models.BooleanField(default=True)
-    start_time = models.BigIntegerField(editable=False)
-    creation_time = models.BigIntegerField(editable=False)
-    last_update_time = models.BigIntegerField(null=True)
+    image = models.ImageField(upload_to='events', null=True)
+    start_time = models.DateTimeField(null=True)
+    creation_time = models.DateTimeField(editable=False)
+    last_update_time = models.DateTimeField(null=True)
 
     def save(self, *args, **kwargs):
         """On save, update timestamps"""
         if self.id:
-            self.last_update_time = int(time.time())
+            self.last_update_time = str(datetime.now())
         elif not self.id:
-            self.creation_time = int(time.time())
+            self.creation_time = str(datetime.now())
 
         return super(Event, self).save(*args, **kwargs)
 
     class Meta:
         db_table = "events"
 
+    def __unicode__(self):
+        return self.name
+
 
 #Productos
 class Classification(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=150)
     description = models.TextField()
     image = models.ImageField(upload_to='classifications', null=True)
-    level = models.IntegerField()
+    level = models.IntegerField(default=1)
     category_father = models.ForeignKey('self', null=True, related_name='children')
-    creation_time = models.BigIntegerField(editable=False)
-    last_update_time = models.BigIntegerField(null=True)
+    creation_time = models.DateTimeField(editable=False)
+    last_update_time = models.DateTimeField(null=True)
 
     def save(self, *args, **kwargs):
         """On save, update timestamps"""
         if self.id:
-            self.last_update_time = int(time.time())
+            self.last_update_time = str(datetime.now())
         elif not self.id:
-            self.creation_time = int(time.time())
+            self.creation_time = str(datetime.now())
 
-        return super(ProductCategory, self).save(*args, **kwargs)
+        return super(Classification, self).save(*args, **kwargs)
 
     class Meta:
         db_table = "classifications"
 
+    def __unicode__(self):
+        return self.name
+
 
 class Product(models.Model):
     classifications = models.ManyToManyField(Classification, db_table="products_classifications", related_name='products', blank=True)
-    name = models.CharField(max_length=50)
+    user = models.OneToOneField(User)
+    name = models.CharField(max_length=150)
     logo = models.ImageField(upload_to='products', null=True)
-    description = models.CharField(max_length=150)
+    description = models.TextField()
     body = models.TextField()
-    creation_time = models.BigIntegerField(editable=False)
-    last_update_time = models.BigIntegerField(null=True)
+    creation_time = models.DateTimeField(editable=False)
+    last_update_time = models.DateTimeField(null=True)
 
     def save(self, *args, **kwargs):
         """On save, update timestamps"""
         if self.id:
-            self.last_update_time = int(time.time())
+            self.last_update_time = str(datetime.now())
         elif not self.id:
-            self.creation_time = int(time.time())
+            self.creation_time = str(datetime.now())
 
         return super(Product, self).save(*args, **kwargs)
 
     class Meta:
         db_table = "products"
+
+    def __unicode__(self):
+        return self.name
